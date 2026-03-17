@@ -74,16 +74,25 @@ class HMM:
 # Starting from the start of the dataset and actually running the probabilities and going from there.
 # TIP: Maybe use the self.correctness thing from official_transitionEmission here to try and see which path is better as well
     def TE(self,current_day, list_mood):
-        if len(data) == 0:
-            return list_mood
+        # if len(data) == 0:
+        #     return list_mood
         if current_day == 0:
             startMood = choices([mood for mood in self.StOut],[self.StOut[p] for p in self.StOut])[0]
             list_mood.append(startMood)
         
+        try:
+            probabilties = [ p * self.Vars[data[current_day]][x] for x,p in enumerate(self.hiddenVars[list_mood[current_day]]) ]
+            # choices function should normalize the probabilites but make sure to do it myself anyway.
+            mood = choices( [mood for mood in self.hiddenVars], probabilties )[0]
+            list_mood.append(mood)
+        except IndexError:
+            return list_mood
         
         current_day +=1
 
-        list_mood = list_mood + [ self.TE( current_day, list_mood) ]
+        list_mood = self.TE( current_day, list_mood)
+
+        return list_mood
 
         # [ return_currentMood(previous_mood) for ]
 # MAIN PROBLEM: IM not even sure if this is a true HMM, an HMM or at least the algorithm for the HMM I'm trying to make is supposed to find the maximum assignment value across the entire data set.  My algorithm only finds the maximum current value of each day as they go by, which doesn't guarantee the maximum probable set of moods.
@@ -99,9 +108,12 @@ class HMM:
         # self.official_transitionEmission(len(data) -1)
         
         # return self.mood_list
+
+        self.mood_list = self.TE(0,[])
+
         poss = dict()
         # Something is wrong with this for loop for both transition/emission functions, fix it.
-        for i in range(100):
+        for i in range(300):
             # self.official_transitionEmission(len(data) - 1)
 
             # startMood = choices([mood for mood in self.StOut],[self.StOut[p] for p in self.StOut])[0]
@@ -110,6 +122,8 @@ class HMM:
             # if len(data) == 0:
             #     return self.mood_list
             # self.transition_emission(data, startMood, num)
+
+            self.mood_list = self.TE(0,[])
 
             if " ".join(self.mood_list) in list(poss.keys()):
                 poss[" ".join(self.mood_list)] += 1
@@ -122,9 +136,9 @@ class HMM:
             # print(self.mood_list)
             # sleep(0.00001)
 
+        # Make a lil thing here to get the top three highest paths (just find the max, and remove it from the dict (3x)
 
-
-        return poss
+        return max(poss, key=poss.get) + " : " + str(max(poss.values()))
 
 test_run = HMM()
 print(test_run.inference(data))
