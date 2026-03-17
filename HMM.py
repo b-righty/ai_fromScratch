@@ -11,7 +11,7 @@ from time import sleep
 
 # HIDDEN VARS = 1: good, 2:Bad
 
-data = ["Green","Blue","Red","Green"]
+data = ["Green","Blue","Red","Green","Red","Blue","Blue","Green"]
 
 # Challenge: Find the probabable moods on each day
 # BONUS:  Find the probable mood on the next day.
@@ -73,7 +73,7 @@ class HMM:
 
 # Starting from the start of the dataset and actually running the probabilities and going from there.
 # TIP: Maybe use the self.correctness thing from official_transitionEmission here to try and see which path is better as well
-    def TE(self,current_day, list_mood):
+    def base_TE(self,current_day, list_mood):
         # if len(data) == 0:
         #     return list_mood
         if current_day == 0:
@@ -90,7 +90,7 @@ class HMM:
         
         current_day +=1
 
-        list_mood = self.TE( current_day, list_mood)
+        list_mood = self.base_TE( current_day, list_mood)
 
         return list_mood
 
@@ -106,39 +106,29 @@ class HMM:
         
         # self.transition_emission(data, startMood, num)
         # self.official_transitionEmission(len(data) -1)
-        
-        # return self.mood_list
 
-        self.mood_list = self.TE(0,[])
+        # return self.mood_list
+        # return self.mood_list
 
         poss = dict()
         # Something is wrong with this for loop for both transition/emission functions, fix it.
-        for i in range(300):
-            # self.official_transitionEmission(len(data) - 1)
+        for i in range(5000):
 
-            # startMood = choices([mood for mood in self.StOut],[self.StOut[p] for p in self.StOut])[0]
-            # self.mood_list.append(startMood)
-            # num = 0
-            # if len(data) == 0:
-            #     return self.mood_list
-            # self.transition_emission(data, startMood, num)
-
-            self.mood_list = self.TE(0,[])
+            self.mood_list = self.base_TE(0,[])
 
             if " ".join(self.mood_list) in list(poss.keys()):
                 poss[" ".join(self.mood_list)] += 1
             else:
                 poss[" ".join(self.mood_list)] = 1
-            # print(self.mood_list)
-            # print(self.correctness)
-            # self.correctness = 0
-            # self.mood_list.clear()
-            # print(self.mood_list)
-            # sleep(0.00001)
+
 
         # Make a lil thing here to get the top three highest paths (just find the max, and remove it from the dict (3x)
+        top_three = dict()
+        for i in range(3):
+            top_three[max(poss, key=poss.get)] = max(poss.values())
+            del poss[max(poss, key=poss.get)]
 
-        return max(poss, key=poss.get) + " : " + str(max(poss.values()))
+        return top_three
 
 test_run = HMM()
 print(test_run.inference(data))
