@@ -11,15 +11,19 @@ from time import sleep
 
 # HIDDEN VARS = 1: good, 2:Bad
 
-data = ["Green","Blue","Red","Green","Red","Blue","Blue","Green"]
+data = ["Blue","Green", "Green"]
 
 # Challenge: Find the probabable moods on each day
 # BONUS:  Find the probable mood on the next day.
 
 class HMM:
     def __init__(self):
-        self.hiddenVars = {"Happy":[0.7,0.3],"Sad":[0.5,0.5]}
-        self.Vars = {"Red":[0.6,0.2],"Green":[0.3,0.3],"Blue":[0.1,0.5]}
+        self.hiddenVars = {"Happy":{"Happy": 0.7,"Sad": 0.3},"Sad":{"Happy": 0.5,"Sad": 0.5}}
+        self.Vars = {
+                    "Red":{"Happy": 0.6,"Sad": 0.2},
+                    "Green":{"Happy": 0.3,"Sad": 0.3 },
+                    "Blue":{"Happy": 0.1,"Sad": 0.5}
+                    }
         self.StOut = {"Happy":0.3,"Sad":0.7}
         self.mood_list = []
         self.correctness = 0
@@ -97,12 +101,31 @@ class HMM:
         # [ return_currentMood(previous_mood) for ]
 # MAIN PROBLEM: IM not even sure if this is a true HMM, an HMM or at least the algorithm for the HMM I'm trying to make is supposed to find the maximum assignment value across the entire data set.  My algorithm only finds the maximum current value of each day as they go by, which doesn't guarantee the maximum probable set of moods.
 
+# True algorithm, returns the probability of the path given occuring, not the best path of the hidden variables of the path.
+# Not made entirely efficient though since there are still a lot of repeating lines: Add cache like that one guy did in that one stanford lesson
+    def forward_algorithm(self, current_day, var):
+        ans = 0
+        if current_day == 0:
+            ans = self.StOut[var] * self.Vars[data[current_day]][var]
+        # This has to go unfortunately, it doesn't include the last element in data list so its an incomplete inference model.
+        elif current_day == (len(data) - 1):
+            for variable in self.hiddenVars:
+                ans += self.forward_algorithm(current_day-1,variable)
+        else:
+            for variable in self.hiddenVars:
+                ans += self.forward_algorithm(current_day-1, variable) * self.Vars[data[current_day]][variable] * self.hiddenVars[variable][var] 
+            
+        return ans
+
+# 
     def inference(self, data):
         # startMood = choices([mood for mood in self.StOut],[self.StOut[p] for p in self.StOut])[0]
         # self.mood_list.append(startMood)
         # num = 0
         # if len(data) == 0:
         #     return self.mood_list
+
+        return self.forward_algorithm(len(data) -1, 0)
         
         # self.transition_emission(data, startMood, num)
         # self.official_transitionEmission(len(data) -1)
@@ -110,25 +133,25 @@ class HMM:
         # return self.mood_list
         # return self.mood_list
 
-        poss = dict()
+        # poss = dict()
         # Something is wrong with this for loop for both transition/emission functions, fix it.
-        for i in range(5000):
+        # for i in range(5000):
 
-            self.mood_list = self.base_TE(0,[])
+        #     self.mood_list = self.base_TE(0,[])
 
-            if " ".join(self.mood_list) in list(poss.keys()):
-                poss[" ".join(self.mood_list)] += 1
-            else:
-                poss[" ".join(self.mood_list)] = 1
+        #     if " ".join(self.mood_list) in list(poss.keys()):
+        #         poss[" ".join(self.mood_list)] += 1
+        #     else:
+        #         poss[" ".join(self.mood_list)] = 1
 
 
         # Make a lil thing here to get the top three highest paths (just find the max, and remove it from the dict (3x)
-        top_three = dict()
-        for i in range(3):
-            top_three[max(poss, key=poss.get)] = max(poss.values())
-            del poss[max(poss, key=poss.get)]
+        # top_three = dict()
+        # for i in range(3):
+        #     top_three[max(poss, key=poss.get)] = max(poss.values())
+        #     del poss[max(poss, key=poss.get)]
 
-        return top_three
+        # return top_three
 
 test_run = HMM()
 print(test_run.inference(data))
